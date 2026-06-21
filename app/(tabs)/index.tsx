@@ -15,6 +15,7 @@ type Task = {
   text: string;
   done: boolean;
   dueDate: string;
+  category: string;
 };
 
 type AiSettings = {
@@ -31,6 +32,8 @@ export default function HomeScreen() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [aiAdvice, setAiAdvice] = useState('');
   const [isAskingAi, setIsAskingAi] = useState(false);
+  const [category, setCategory] = useState('私用');
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   const STORAGE_KEY = 'tasks';
   const AI_SETTINGS_KEY = 'ai_settings';
   const TASK_ADVICE_URL =
@@ -64,7 +67,12 @@ export default function HomeScreen() {
     setTasks(
       tasks.map((task) =>
         task.id === editingTaskId
-          ? { ...task, text: taskText, dueDate: dueDate }
+          ? {
+              ...task,
+              text: taskText,
+              dueDate: dueDate,
+              category: category,
+            }
           : task
       )
     );
@@ -81,6 +89,7 @@ export default function HomeScreen() {
     text: taskText,
     done: false,
     dueDate: dueDate,
+    category: category,
   };
 
   setTasks([newTask, ...tasks]);
@@ -119,6 +128,7 @@ export default function HomeScreen() {
   const editTask = (task: Task) => {
     setTaskText(task.text);
     setDueDate(task.dueDate);
+    setCategory(task.category);
     setEditingTaskId(task.id);
   };
 
@@ -134,7 +144,7 @@ export default function HomeScreen() {
 
     const taskList = unfinishedTasks
       .map((task) =>
-          `${task.text} ${
+          `[${task.category}] ${task.text} ${
           task.dueDate ? `(期限:${task.dueDate})` : ''
         }`
       )
@@ -165,7 +175,22 @@ export default function HomeScreen() {
 
       const data = await response.json();
 
-      setAiAdvice(data.reply);
+      const parsed = JSON.parse(data.reply);
+
+      setRecommendations([
+        {
+          title: `🥇 ${parsed.first}`,
+          reason: parsed.firstReason,
+        },
+        {
+          title: `🥈 ${parsed.second}`,
+          reason: parsed.secondReason,
+        },
+        {
+          title: `🥉 ${parsed.third}`,
+          reason: parsed.thirdReason,
+        },
+      ]);
     } catch (error) {
       setAiAdvice('AIにつながりませんでした');
     } finally {
@@ -176,6 +201,28 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>タスク管理</Text>
+
+      <View style={styles.categoryRow}>
+          {['就活', '大学', 'バイト', '私用'].map((item) => (
+            <Pressable
+              key={item}
+              style={[
+                styles.categoryButton,
+                category === item && styles.selectedCategoryButton,
+              ]}
+              onPress={() => setCategory(item)}
+            >
+              <Text
+                style={[
+                  styles.categoryButtonText,
+                  category === item && styles.selectedCategoryButtonText,
+                ]}
+              >
+                {item}
+              </Text>
+              </Pressable>
+            ))}
+        </View>
 
       <View style={styles.inputRow}>
         <TextInput
@@ -212,11 +259,29 @@ export default function HomeScreen() {
         </Text>
       </Pressable>
 
-      {aiAdvice !== '' && (
-        <View style={styles.aiBox}>
-          <Text style={styles.aiText}>{aiAdvice}</Text>
+      <Text style={styles.sectionTitle}>
+        🎯 AIのおすすめ
+      </Text>
+
+      {recommendations.map((item, index) => (
+        <View
+          key={index}
+          style={[
+            styles.card,
+            index === 0 && styles.goldCard,
+            index === 1 && styles.silverCard,
+            index === 2 && styles.bronzeCard,
+          ]}
+  >
+          <Text style={styles.cardTitle}>
+            {item.title}
+          </Text>
+
+          <Text style={styles.cardReason}>
+            {item.reason}
+          </Text>
         </View>
-      )}
+      ))}
 
       <FlatList
         data={[...tasks].sort((a, b) => {
@@ -253,6 +318,10 @@ export default function HomeScreen() {
               </Text>
 
               <View style={styles.taskTextBox}>
+                <Text style={styles.categoryLabel}>
+                  {item.category}
+                </Text>
+
                 <Text style={[styles.taskText, item.done && styles.doneText]}>
                   {item.text}
                 </Text>
@@ -407,5 +476,83 @@ const styles = StyleSheet.create({
   aiText: {
     fontSize: 16,
     color: '#065f46',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+
+  categoryButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+
+  selectedCategoryButton: {
+    backgroundColor: '#4f46e5',
+    borderColor: '#4f46e5',
+  },
+
+  categoryButtonText: {
+    color: '#333',
+  },
+
+  selectedCategoryButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  categoryLabel: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#e0e7ff',
+    color: '#4338ca',
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  
+  card: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+  },
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+
+  cardReason: {
+    color: '#4b5563',
+    lineHeight: 22,
+  },
+  goldCard: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#f59e0b',
+  },
+
+  silverCard: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#9ca3af',
+  },
+
+  bronzeCard: {
+    backgroundColor: '#fde7d8',
+    borderColor: '#c2410c',
   },
 });
