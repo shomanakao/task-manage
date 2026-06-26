@@ -208,6 +208,10 @@ export default function HomeScreen() {
               key={item}
               style={[
                 styles.categoryButton,
+                item === '就活' && styles.jobCategoryButton,
+                item === '大学' && styles.schoolCategoryButton,
+                item === 'バイト' && styles.workCategoryButton,
+                item === '私用' && styles.privateCategoryButton,
                 category === item && styles.selectedCategoryButton,
               ]}
               onPress={() => setCategory(item)}
@@ -249,40 +253,6 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      <Pressable
-        style={[styles.aiButton, isAskingAi && styles.disabledButton]}
-        onPress={askAi}
-        disabled={isAskingAi}
->
-        <Text style={styles.aiButtonText}>
-          {isAskingAi ? 'AI考え中...' : '🤖 AIに聞く'}
-        </Text>
-      </Pressable>
-
-      <Text style={styles.sectionTitle}>
-        🎯 AIのおすすめ
-      </Text>
-
-      {recommendations.map((item, index) => (
-        <View
-          key={index}
-          style={[
-            styles.card,
-            index === 0 && styles.goldCard,
-            index === 1 && styles.silverCard,
-            index === 2 && styles.bronzeCard,
-          ]}
-  >
-          <Text style={styles.cardTitle}>
-            {item.title}
-          </Text>
-
-          <Text style={styles.cardReason}>
-            {item.reason}
-          </Text>
-        </View>
-      ))}
-
       <FlatList
         data={[...tasks].sort((a, b) => {
           if (a.done !== b.done) {
@@ -318,7 +288,16 @@ export default function HomeScreen() {
               </Text>
 
               <View style={styles.taskTextBox}>
-                <Text style={styles.categoryLabel}>
+
+                <Text
+                  style={[
+                    styles.categoryBadge,
+                    item.category === '就活' && styles.jobBadge,
+                    item.category === '大学' && styles.schoolBadge,
+                    item.category === 'バイト' && styles.workBadge,
+                    item.category === '私用' && styles.privateBadge,
+                  ]}
+                >
                   {item.category}
                 </Text>
 
@@ -494,7 +473,6 @@ const styles = StyleSheet.create({
 
   selectedCategoryButton: {
     backgroundColor: '#4f46e5',
-    borderColor: '#4f46e5',
   },
 
   categoryButtonText: {
@@ -504,17 +482,6 @@ const styles = StyleSheet.create({
   selectedCategoryButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-  },
-  categoryLabel: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#e0e7ff',
-    color: '#4338ca',
-    fontSize: 12,
-    fontWeight: 'bold',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    marginBottom: 4,
   },
 
   sectionTitle: {
@@ -554,5 +521,47 @@ const styles = StyleSheet.create({
   bronzeCard: {
     backgroundColor: '#fde7d8',
     borderColor: '#c2410c',
+  },
+
+  categoryBadge: {
+  alignSelf: 'flex-start',
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  borderRadius: 8,
+  color: '#fff',
+  fontSize: 12,
+  marginBottom: 6,
+  overflow: 'hidden',
+  },
+
+  jobBadge: {
+    backgroundColor: '#f97316',
+  },
+
+  schoolBadge: {
+    backgroundColor: '#2563eb',
+  },
+
+  workBadge: {
+    backgroundColor: '#16a34a',
+  },
+
+  privateBadge: {
+    backgroundColor: '#9333ea',
+  },
+  jobCategoryButton: {
+    borderColor: '#f97316',
+  },
+
+  schoolCategoryButton: {
+    borderColor: '#2563eb',
+  },
+
+  workCategoryButton: {
+    borderColor: '#16a34a',
+  },
+
+  privateCategoryButton: {
+    borderColor: '#9333ea',
   },
 });
